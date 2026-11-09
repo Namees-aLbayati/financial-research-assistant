@@ -1,0 +1,13 @@
+services:
+  app:
+    build: .
+    env_file: .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma-data:/app/.app_chroma
+      - app-cache:/app/.app_cache
+
+volumes:
+  chroma-data:
+  app-cache:

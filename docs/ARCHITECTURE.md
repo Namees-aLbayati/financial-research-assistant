@@ -9,7 +9,7 @@ React question form → POST /ask → evidence retrieval
                                  → structured JSON → research report
 ```
 
-FastAPI loads the pipeline once at startup. Cleaned source data and filing chunks determine the expected Chroma record IDs. Startup requires a matching local `.app_chroma` index. It does not build embeddings, optimize prompts, or run model judges.
+FastAPI prepares/verifies the Chroma index during startup, then loads the pipeline once. Cleaned source data and filing chunks determine expected record IDs. Missing records are embedded and saved to `.app_chroma`; this can make paid API calls. Startup fails if preparation or verification fails. It does not optimize prompts or run model judges.
 
 The frontend displays the released answer, historical calculations, citations and limitations. Structural citation validity is not factual verification. Internal model drafts are filtered out of the API response.
 

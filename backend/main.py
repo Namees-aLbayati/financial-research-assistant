@@ -41,9 +41,19 @@ class AnswerResponse(BaseModel):
 
 @asynccontextmanager
 async def lifespan(app):
-    # Import once at startup; no notebook execution or paid API calls here.
+    # Prepare/verify the persisted index before importing inference, which
+    # requires a complete index. Missing records can trigger paid embeddings.
     if not hasattr(app.state, "answer_question"):
-        from backend.pipeline import final_inference
+        try:
+            from backend.prepare_index import prepare
+            prepare()
+            from backend.pipeline import final_inference
+        except Exception as error:
+            logger.exception("Chroma index initialization failed; refusing to start.")
+            raise RuntimeError(
+                "Chroma index initialization failed; check the data, credentials, "
+                "and persistent .app_chroma storage."
+            ) from error
         app.state.answer_question = final_inference
     yield
 

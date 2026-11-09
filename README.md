@@ -50,23 +50,20 @@ cp .env.example .env
 
 Edit `.env` with your model API key and provider base URL. Keep real credentials out of Git. If you already have a local `.env`, keep it instead of copying the example over it.
 
-### 2. Prepare the index
+### 2. Build and run everything
 
-The vector index is excluded from Git. A new clone needs an index before normal startup:
-
-```bash
-python -m backend.prepare_index --allow-api-calls
-```
-
-This uses the configured embedding API and may incur charges for missing records. It resumes saved batches. **Existing local installations with a matching `.app_chroma` can skip this step.** The application does not automatically rebuild the index when starting.
-
-### 3. Build and run
+Run the app with one command after activating the virtual environment and installing the frontend dependencies:
 
 ```bash
 npm ci --prefix frontend
-npm run build --prefix frontend
-python -m uvicorn backend.main:app --reload
+./start_app.sh
 ```
+
+The script builds React and starts FastAPI. During startup, FastAPI prepares or verifies the Chroma index before accepting requests. Index preparation uses the configured embedding API and may incur charges if records are missing; a matching existing index requires no new document embeddings.
+
+### Docker
+
+Build and start the production container with `docker compose up --build -d`. The image contains the app and built React files; named volumes persist `.app_chroma` and `.app_cache` outside the replaceable container. On first startup, the app creates the missing index and may make paid embedding requests. The container refuses to start if index preparation fails. Supply `.env` locally or configure equivalent secrets in your deployment environment.
 
 Open **http://127.0.0.1:8000/**. Enter a question or select an example, then click **Generate report**. Keep the server terminal running; stop it with **Ctrl+C**.
 

@@ -12,7 +12,7 @@ pip install -r requirements-app.txt
 python -m uvicorn backend.main:app --reload
 ```
 
-Keep the existing `OPENAI_API_KEY` and `OPENAI_BASE_URL` in your project `.env`. They stay on the backend. Existing shell settings take precedence over `.env`.
+Keep the existing `OPENAI_API_KEY` and `OPENAI_BASE_URL` in your project `.env`. They stay on the backend. Existing shell settings take precedence over `.env`. During startup, FastAPI prepares/verifies the Chroma index before serving requests; missing document embeddings may incur API charges, and startup fails if the index cannot be initialized.
 
 Open http://127.0.0.1:8000/docs. Expand **POST /ask**, click **Try it out**, enter this JSON, and click **Execute**:
 
@@ -20,7 +20,7 @@ Open http://127.0.0.1:8000/docs. Expand **POST /ask**, click **Try it out**, ent
 {"question": "How did Apple's stock price change?"}
 ```
 
-Sending a real question can make paid embedding and model calls. Startup only loads local data and the existing index. `GET /health` checks local startup readiness, not upstream API access.
+Sending a real question can make paid embedding and model calls. Startup prepares or verifies the local index and may make paid embedding calls for missing documents. `GET /health` confirms the app started; it does not verify later upstream API access.
 
 ## Connect your app
 
@@ -74,13 +74,13 @@ Tests use real local startup/data and stub paid answer calls. They do not establ
 
 The app uses `.app_chroma`, containing 10,320 expected source records. Keep this folder when copying the local project. The older notebook indexes and experiment history were removed during cleanup.
 
-If this index is missing or source data changes, explicitly build/resume it:
+If this index is missing or source data changes, application startup builds/resumes and verifies it automatically:
 
 ```bash
-python -m backend.prepare_index --allow-api-calls
+python -m uvicorn backend.main:app --reload
 ```
 
-This can incur embedding API charges for missing records. Normal app startup does not build an index or run benchmarks.
+This can incur embedding API charges for missing records. Normal app startup does not run benchmarks.
 
 ## Retained notebook and evaluation evidence
 
